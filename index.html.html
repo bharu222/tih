@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Map with Logo and Header</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background-color: #757176d8;
+            color: rgb(15, 13, 13);
+            padding: 30px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .header .logo-container {
+            display: flex;
+            align-items: center;
+        }
+
+        .header .logo-container img {
+            margin-right: 10px;
+        }
+
+        .header .navigation {
+            display: flex;
+            gap: 15px;
+        }
+
+        .header .navigation a {
+            color: white;
+            text-decoration: none;
+            padding: 5px 10px;
+        }
+
+        .header .navigation a:hover {
+            background-color: #b2a7a7;
+            border-radius: 5px;
+        }
+
+        .header .selector-container {
+            margin-left: auto;
+        }
+
+        .header .selector-container select {
+            padding: 5px;
+            font-size: 20px;
+        }
+     
+        .menu-icon {
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+        }
+       
+
+        .menu-icon div {
+            width: 25px;
+            height: 3px;
+            background-color: rgb(247, 240, 240);
+            margin: 4px 0;
+        }
+
+        .collapsible-menu {
+            display: none;
+            background-color: #333;
+            position: absolute;
+            top: 50px;
+            right: 20px;
+            width: 200px;
+            border-radius: 5px;
+            z-index: 1001;
+            overflow:auto;
+        }
+
+        .collapsible-menu input[type="checkbox"] {
+            margin: 10px;
+        }
+
+        .collapsible-menu label {
+            color: white;
+            padding: 10px;
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .header .navigation {
+                display: none;
+            }
+
+            .menu-icon {
+                display: flex;
+            }
+        }
+
+        .stats-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background-color: #2b2b2b;
+            padding: 10px 0;
+            gap: 5px; /* Adjust gap between boxes */
+        }
+
+        .stat-box {
+            background-color: #2b2b2b;
+            border: 1px solid #797c7b;
+            border-radius: 5px;
+            width: 22%; /* Adjust width if needed */
+            padding: 20px; /* Adjust padding if needed */
+            text-align: center;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-box h1 {
+            margin: 0;
+            font-size: 5em;
+            color:#499ca7;
+            
+        }
+
+        .stat-box p {
+            margin: 5px 0 0;
+            font-size:1.7em; /* Increase description font size */
+            color:#499ca7;
+            
+        }
+        .stat-boxodd {
+            background-color: #2b2b2b;
+            border: 1px solid #757777;
+            border-radius: 5px;
+            width: 22%; /* Adjust width if needed */
+            padding: 20px; /* Adjust padding if needed */
+            text-align: center;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .stat-boxodd h1 {
+            margin: 0;
+            font-size: 5em;
+            color:#b85353;
+            
+        }
+
+        .stat-boxodd p {
+            margin: 5px 0 0;
+            font-size:1.7em; /* Increase description font size */
+            color:#b85353;
+            
+        }
+
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            justify-content: right;
+        }
+
+
+        #map {
+            height: calc(100% - 50px);
+            width: 39%;
+            height:95% ;
+            position: relative;
+        }
+
+        #table-container {
+            width: 35%;
+            overflow-y: auto;
+            height: calc(100% - 50px);
+            display: flex;
+            flex-direction: column;
+            background-color: #39393c;
+        }
+
+        .tih-item {
+            border: 1px solid #ddd;
+            margin: 8px;
+            padding: 8px;
+            background-color: #824a3c;
+            color: #ffffff;
+        }
+
+        .tih-item:nth-child(even) {
+            background-color: #824a3c;
+            color: #ffffff;
+        }
+
+        .tih-item h4 {
+            margin: 5px 0;
+            font-size: 20px;
+            color: #ffffff;
+        }
+
+        .tih-item a {
+            color: #ffffff;
+            text-decoration: none;
+        }
+
+        #table-carousel-container {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            width: 25%;
+            height: 63%;
+            overflow: hidden;
+            background: #003135;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            color: #afdde5;
+        }
+
+        #table-carousel {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .table-item {
+            min-width: 100%;
+            box-sizing: border-box;
+            padding: 10px;
+            overflow-y: auto;
+            height: 100%;
+        }
+
+        .table-item h2, .table-item h3 {
+            margin-top: 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #003135;
+            color: #afdde5
+        }
+
+        .carousel-button {
+            background-color: #dde5ea;
+            border: none;
+            color: rgb(17, 15, 15);
+            padding: 10px;
+            cursor: pointer;
+            z-index: 1;
+        }
+
+        #prev-button {
+            position: absolute;
+            left: 0;
+            bottom: 0;
+        }
+
+        #next-button {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+        }
+        .coordinates {
+    position: absolute;
+    bottom: 10px;
+    left: 32%;
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.7);
+    padding: 5px;
+    border-radius: 5px;
+    font-size: 14px;
+    z-index: 1000;
+}
+
+
+        .leaflet-control-layers {
+            left: 10px !important;
+            right: auto !important;
+        }
+
+        .iit-logo {
+            width: 200px;
+            height: auto;
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            z-index: 1001;
+        }
+
+        .blinking {
+            animation: blinking 5s infinite;
+        }
+
+        @keyframes blinking {
+            0% { opacity: 1; }
+            50% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+        .sidebar {
+            width: 400px;
+            height: 100%;
+            position: fixed;
+            z-index: 1002;
+            top: 0;
+            left: 0;
+            background-color: #bfbdbd;
+            overflow-x: hidden;
+            transition: 0.5s;
+            padding-top: 60px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            color: #000000
+        }
+
+        .sidebar img {
+            width: 80%;
+            margin: 15px 10%;
+        }
+
+        .sidebar p {
+            color: rgb(0, 0, 0);
+            padding: 0 20px;
+        }
+
+        .openbtn {
+            font-size: 20px;
+            cursor: pointer;
+            background-color: #80898e;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+        }
+
+        .openbtn:hover {
+            background-color: #575757;
+        }
+        .openbtn-right {
+            font-size: 20px;
+            cursor: pointer;
+            background-color: #80898e;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+        .openbtn-right:hover {
+            background-color: #575757;
+        }
+        .closebtn {
+            position: absolute;
+            top: 10px;
+            right: 25px;
+            font-size: 36px;
+            margin-left: 50px;
+            color: white;
+            cursor: pointer;
+        }
+
+        .closebtn:hover {
+            color: #ff0000;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="header">
+    <button class="openbtn" onclick="toggleSidebar()">☰</button>
+        <div class="logo-container">
+            <span style="font-size: larger;">NM-ICPS <br><sub style="font-size: small;">Information about 25 Technology Innovation Hubs</sub></span>
+           
+        </div>
+        <div class="navigation">
+            <a href="#home"></a>
+            <!-- Add more links as needed -->
+        </div>
+        <div class="selector-container">
+            <select id="selector">
+                <option value="all">All TIH</option>
+               <!--  Options will be dynamically added here -->
+            </select>
+        </div>
+        <div class="hamburger-menu" id="hamburger-menu" onclick="toggleMenu()">
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+        <!--<button class="openbtn" onclick="toggleSidebar()">☰</button>-->
+    </div>
+    <div id="mySidebar" class="sidebar">
+        <a href="javascript:void(0)" class="closebtn" onclick="toggleSidebar()">×</a>
+        <img src="https://tih.iitr.ac.in/assets/img/nmicps.png" alt="Image 1">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Ministry_of_Science_and_Technology_India.svg/1285px-Ministry_of_Science_and_Technology_India.svg.png" alt="Image 2">
+        <p><strong>About NM-ICPS</strong></p>
+        <p>NM-ICPS</p>
+        <p>The Mission aims at development of technology platforms to carry out R&D, Translational Research, Product Development, Incubating & Supporting Start-ups as well as Commercialization. The Mission is working with all the concerned Ministries/ Departments to identify their technology needs, develop solutions and technical support.</p>
+        <p><strong>MISSION AIMS</strong></p>
+        <p>(i) Make India a leading player in CPS technologies.<br>
+           (ii) Achieve translation of CPS technologies for societal and commercial use, nurture startups and increase in the job market.<br>
+           (iii) Produce next generation technocrats in CPS technologies.</p>
+        <p>The 25 Technology Innovation Hubs (TIH) set up across the country through the National Mission on Interdisciplinary Cyber-Physical Systems (NM-ICPS) are boosting new and emerging technologies to power national initiatives in key areas. They are bringing out several technological solutions for people-centric problems.</p>
+        <p><strong>MISSION OBJECTIVES</strong></p>
+        <p>-To promote translational research in Cyber-Physical Systems (CPS) and associated technologies.<br>
+           -To develop technologies, prototypes and demonstrate associated applications pertaining to national priorities.<br>
+           -To enhance high-end researchers base, Human Resource Development (HRD) and skill-sets in these emerging areas.<br>
+           -To enhance core competencies, capacity building and training to nurture innovation and start-up ecosystem.</p>
+    </div>
+
+
+
+    <div class="collapsible-menu" id="collapsible-menu">
+        <input type="checkbox" id="india-layer" checked>
+        <label for="india-layer">India</label>
+        <input type="checkbox" id="points-layer" checked>
+        <label for="points-layer">Innovation Hubs</label>
+    </div>
+    <div class="stats-container">
+        <div class="stat-box">
+            <h1>12k</h1>
+            <p>Human Resource</p>
+        </div>
+        <div class="stat-boxodd">
+            <h1>35k</h1>
+            <p>Startups</p>
+        </div>
+        <div class="stat-box">
+            <h1>10k</h1>
+            <p>Collaborations</p>
+        </div>
+        <div class="stat-boxodd">
+            <h1>67k</h1>
+            <p>Technology Development</p>
+        </div>
+    </div>
+    <div class="main-content">
+        <div id="map"></div>
+        <div id="table-carousel-container">
+            <div id="table-carousel">
+                <div class="table-item">
+                    <h2 style="text-align: center; background-color: #0fa4af;color: #003135;"> NM-ICPS Governing Body</h2>
+                    <h3 style="text-align: center;">INTER-MINISTERIAL COORDINATION COMMITTEE</h3>
+                    <table border="border">
+                        <tr align="center">
+                            <th>Name</th>
+                            <th>Position</th>
+                            <th>Role</th>
+                        </tr>
+                        <tr>
+                            <td>Dr.Rajesh S.Gokhale</td>
+                            <td>Member</td>
+                            <td>Secretary,DST</td>
+                        </tr>
+                        <tr>
+                            <td>Dr.Akhilesh Gupta</td>
+                            <td>Member</td>
+                            <td>Senior Advisor & Overall In-Charge,NM-ICPS, DST</td>
+                        </tr>
+                        <tr>
+                            <td>Dr. Ekta Kapoor</td>
+                            <td>Member-Secretary</td>
+                            <td>Scientist-F, Head FFT, DST</td>
+                        </tr>
+                        <tr>
+                            <td>Dr. JBV Reddy</td>
+                            <td>Member</td>
+                            <td>Scientist-F, FFT Division, DST</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="table-item">
+                    <h3>MISSION GOVERNING BOARD</h3>
+                    <table border="border">
+                        <tr align="center">
+                            <th>Name</th>
+                            <th>Position</th>
+                            <th>Role</th>
+                        </tr>
+                        <tr>
+                            <td>Dr.Kris GopalaKrishna</td>
+                            <td>Chairman</td>
+                            <td>Chairman,Axilor Ventures</td>
+                        </tr>
+                        <tr>
+                            <td>Dr.VK Saraswat</td>
+                            <td>Member</td>
+                            <td>Member(S&T), NITI Aayog</td>
+                        </tr>
+                        <tr>
+                            <td>Prof. Ajay Kumar Sood</td>
+                            <td>Member-Secretary</td>
+                            <td>Principal Scientific Adviser to Gol</td>
+                        </tr>
+                        <tr>
+                            <td>Dr. T.V. Somanathan</td>
+                            <td>Member</td>
+                            <td>Secretary, D/o Expenditure</td>
+                        </tr>
+                        <tr>
+                            <td>Shri Alkesh Kumar Sharma</td>
+                            <td>Member</td>
+                            <td>Secretary, MeitY</td>
+                        </tr>
+                        <tr>
+                            <td>Dr. Rajesh S. Gokhale</td>
+                            <td>Member</td>
+                            <td>Secretary, DST</td>
+                        </tr>
+                        <tr>
+                            <td>Prof. Ram Gopal Rao</td>
+                            <td>Member</td>
+                            <td>Former Director, IIT Delhi</td>
+                        </tr>
+                        <tr>
+                            <td>Prof. (Dr.) Unnat P. Pandit</td>
+                            <td>Member</td>
+                            <td>Controller General of Patents, Designs,Trade Marks & Registrar of Geographical Indications</td>
+                        </tr>
+                        <tr>
+                            <td>Lt. Gen. Rajesh Pant</td>
+                            <td>Member</td>
+                            <td>National Cyber Security Coordinator, National Security Council Secretariat</td>
+                        </tr>
+                        <tr>
+                            <td>Dr. Manish Gupta</td>
+                            <td>Member</td>
+                            <td>Director Google Research India</td>
+                        </tr>
+                        <tr>
+                            <td>Dr. Sriram Rajamani</td>
+                            <td>Member</td>
+                            <td>Managing Director, Microsoft Research India</td>
+                        </tr>
+                        <tr>
+                            <td>Shri Rajesh Gopinathan</td>
+                            <td>Member</td>
+                            <td>Chief Executive Officer, TCS</td>
+                        </tr>
+                        <tr>
+                            <td>Dr. Ekta Kapoor</td>
+                            <td>Member</td>
+                            <td>Scientist-F, Head FFT, DST</td>
+                        </tr>
+                        <tr>
+                            <td>Dr. JBV Reddy</td>
+                            <td>Member</td>
+                            <td>Scientist -F, FFT Division, DST</td>
+                        </tr>
+                        <tr>
+                            <td>Dr Akhilesh Gupta</td>
+                            <td>Member</td>
+                            <td>Senior Advisor & Overall In-charge NM-ICPS, DST</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="table-item">
+                    <h3>SCIENTIFIC ADVISORY COMMITTEE</h3>
+                    <table border="border">
+                        <tr align="center">
+                            <th>Name</th>
+                            <th>Position</th>
+                            <th>Role</th>
+                        </tr>
+                        <tr>
+                            <td>Prof. Ramgopal Rao</td>
+                            <td>Chairman</td>
+                            <td>Former Director,IIT Delhi</td>
+                        </tr>
+                        <tr>
+                            <td>Prof.V Arvind</td>
+                            <td>Member</td>
+                            <td>Former Director, The Institute of Mathematical Sciences, Chennai</td>
+                        </tr>
+                        <tr>
+                            <td>Prof. Madhavan Mukund</td>
+                            <td>Member-Secretary</td>
+                            <td>Director, Chennai Mathematical Institute,Chennai</td>
+                        </tr>
+                        <tr>
+                            <td>Shri Shekar Sivasubramanian</td>
+                            <td>Member</td>
+                            <td>CEO, Wadhwani Institute for Artificial Intelligence, Mumbai</td>
+                        </tr>
+                        <tr>
+                            <td>Dr. Rohini Srivathsa</td>
+                            <td>Member</td>
+                            <td>National Technology Officer, Microsoft India, Bangalore</td>
+                        </tr>
+                        <tr>
+                            <td>Dr. Preeti Banzal</td>
+                            <td>Member</td>
+                            <td>Representative, Office of the PSA</td>
+                        </tr>
+                        <tr>
+                            <td>Sunita Verma</td>
+                            <td>Member</td>
+                            <td>Representative of MeitY</td>
+                        </tr>
+                        <tr>
+                            <td>PS Joshi</td>
+                            <td>Member</td>
+                            <td>Representative of DAE</td>
+                        </tr>
+                        <tr>
+                            <td>Dr. Amit Sharma</td>
+                            <td>Member</td>
+                            <td>Representative of DRDO</td>
+                        </tr>
+                        <tr>
+                            <td>Dr. Sridevi Jade</td>
+                            <td>Member</td>
+                            <td>Representative of CSIR</td>
+                        </tr>
+                        <tr>
+                            <td>Dr. Ekta Kapoor</td>
+                            <td>Member</td>
+                            <td>Scientist-F, Head FFT, DST</td>
+                        </tr>
+                        <tr>
+                            <td>Dr. JBV Reddy</td>
+                            <td>Member</td>
+                            <td>Scientist -F, FFT Division, DST</td>
+                        </tr>
+                        <tr>
+                            <td>Dr Akhilesh Gupta</td>
+                            <td>Member</td>
+                            <td>Senior Advisor & Overall In-charge NM-ICPS, DST</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <button class="carousel-button" id="prev-button">&lt;</button>
+            <button class="carousel-button" id="next-button">&gt;</button>
+        </div>
+        <div id="table-container">
+            <!-- Vertically aligned items will be dynamically added here -->
+        </div>
+    </div>
+    <div id="coordinates" class="coordinates"></div>
+    <img class="iit-logo" src="final logo.png" alt="IIT Tirupati Logo" />
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        function toggleSidebar() {
+            var sidebar = document.getElementById("mySidebar");
+            if (sidebar.style.width === "250px") {
+                sidebar.style.width = "0";
+            } else {
+                sidebar.style.width = "250px";
+            }
+        }
+
+        // Initialize the map
+        var map = L.map('map').setView([20.5937, 78.9629], 5); // Center map to India
+
+        // Base layers
+        var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        var dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors & <a href="https://carto.com/attributions">CARTO</a>'
+        });
+
+        var googleStreets = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+            maxZoom: 20,
+            subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
+        });
+
+        // Function to toggle the collapsible menu
+        
+        
+        function toggleMenu() {
+            const menu = document.querySelector('.collapsible-menu');
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById("mySidebar");
+            sidebar.style.width = sidebar.style.width === "250px" ? "0" : "250px";
+        }
+
+        // Base layers object for layer control
+        var baseLayers = {
+            "OpenStreetMap": osm,
+            "Dark": dark,
+            "Google Streets": googleStreets
+        };
+
+        // GeoJSON layers
+        var indiaLayer = null;
+        var pointsLayer = null;
+
+        // Overlay layers object for layer control
+        var overlayLayers = {};
+
+        // Load India GeoJSON data
+        fetch('india.json') // Ensure this path is correct
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(data => {
+                indiaLayer = L.geoJSON(data, {
+                    style: function(feature) {
+                        return {
+                            color: "#1659C1",
+                            weight: 2,
+                            opacity: 0.65
+                        };
+                    }
+                }).addTo(map);
+                overlayLayers["India"] = indiaLayer;
+                L.control.layers(baseLayers, overlayLayers).addTo(map); // Add layer control after adding indiaLayer
+            })
+            .catch(error => {
+                console.error('Error loading India GeoJSON:', error);
+            });
+
+        // Load Points GeoJSON data
+        fetch('tih.geojson') // Ensure this path is correct
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(data => {
+                var allProperties = [];
+                pointsLayer = L.geoJSON(data, {
+                    onEachFeature: function (feature, layer) {
+                        var properties = feature.properties;
+                        var name = properties.Institute_;
+                        var webPortal = properties.webportal;
+                        var coordinates = feature.geometry.coordinates;
+                        var latitude = coordinates[1];
+                        var longitude = coordinates[0];
+
+                        if (name) {
+                            addOptionToSelector(name, [latitude, longitude]);
+                            allProperties.push(properties);
+                        }
+
+                        var popupContent = '<b>' + name + '</b><br>' + properties.Technology;
+                        if (webPortal) {
+                            popupContent += '<br><a href="' + webPortal + '" target="_blank">Visit Web Portal</a>';
+                        }
+                        layer.bindPopup(popupContent);
+                        layer.on('click', function() {
+                            map.setView([latitude, longitude], 10); // Zoom to point on click
+                            updateTable([properties]); // Update table with the selected TIH data
+                        });
+                    }
+                }).addTo(map);
+                overlayLayers["TIH"] = pointsLayer; // Added to overlayLayers
+                L.control.layers(baseLayers, overlayLayers).addTo(map); // Add layer control after adding pointsLayer
+                updateTable(allProperties); // Initial table update with all TIH data
+
+                function addOptionToSelector(name, coordinates) {
+                    var selector = document.getElementById('selector');
+                    var option = document.createElement('option');
+                    option.text = name;
+                    option.value = JSON.stringify(coordinates);
+                    selector.add(option);
+                }
+
+                function updateTable(propertiesArray) {
+                    var tableContainer = document.getElementById('table-container');
+                    tableContainer.innerHTML = ''; // Clear existing items
+                    propertiesArray.forEach(properties => {
+                        var item = document.createElement('div');
+                        item.className = 'tih-item';
+                        item.innerHTML = `
+                            <h4>TIH DETAILS</h4>
+                            <p><strong>Technology Focus:</strong> ${properties.Technology}</p>
+                            <p><strong>Section 8 Company:</strong> ${properties.Technolo_1}</p>
+                            <p><strong>Host Institute:</strong> ${properties.Institute_}</p>
+                            <p><strong>Director:</strong> ${properties.Director__}</p>
+                            <p><strong>Project Director:</strong> ${properties.Project_Di}</p>
+                            <p><strong>CEO:</strong> ${properties.CEO_TIH}</p>
+                            <p><a href="${properties.webportal}" target="_blank">Visit Webportal</a></p>
+                        `;
+                        tableContainer.appendChild(item);
+                    });
+                }
+
+                document.getElementById('selector').addEventListener('change', function () {
+                    var selectedValue = this.value;
+                    if (selectedValue === 'all') {
+                        map.fitBounds(pointsLayer.getBounds()); // Fit map to all points
+                        updateTable(allProperties); // Update table with all TIH data
+                    } else if (selectedValue) {
+                        var coordinates = JSON.parse(selectedValue);
+                        map.setView(coordinates, 10); // Assuming [latitude, longitude] format
+                        highlightSelectedPoint(coordinates);
+
+                        // Filter properties for the selected TIH
+                        var selectedProperties = allProperties.filter(properties => {
+                            var coords = properties.geometry.coordinates;
+                            return coords[1] === coordinates[0] && coords[0] === coordinates[1];
+                        });
+                        updateTable(selectedProperties); // Update table with selected TIH data
+                    }
+                });
+
+                function highlightSelectedPoint(coordinates) {
+                    var selectedLayer = null;
+
+                    pointsLayer.eachLayer(function (layer) {
+                        var layerCoords = layer.feature.geometry.coordinates;
+                        if (layerCoords[1] === coordinates[0] && layerCoords[0] === coordinates[1]) {
+                            selectedLayer = layer;
+                        }
+                    });
+
+                    if (selectedLayer) {
+                        selectedLayer.openPopup();
+                        selectedLayer.getElement().classList.add('blinking');
+                        setTimeout(function () {
+                            selectedLayer.getElement().classList.remove('blinking');
+                        }, 3000);
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error loading Points GeoJSON:', error);
+            });
+
+        map.on('dblclick', function() {
+            map.setZoom(map.getZoom() - 1);
+        });
+
+        document.getElementById('india-layer').addEventListener('change', function () {
+            if (this.checked) {
+                map.addLayer(indiaLayer);
+            } else {
+                map.removeLayer(indiaLayer);
+            }
+        });
+
+        document.getElementById('points-layer').addEventListener('change', function () {
+            if (this.checked) {
+                map.addLayer(pointsLayer);
+            } else {
+                map.removeLayer(pointsLayer);
+            }
+        });
+
+        map.on('mousemove', function(e){
+            var lat = e.latlng.lat.toFixed(4);
+            var lng = e.latlng.lng.toFixed(4);
+            var zoom = map.getZoom();
+            var scaleRatio = 40075016.686 * Math.abs(Math.cos(lat * Math.PI / 180)) / Math.pow(2, zoom + 8); // Calculate scale in meters
+            var scaleKm = scaleRatio / 1000; // Convert scale to kilometers
+            var scaleLabel = 'km'; // Default scale label
+
+            if (scaleKm < 1) { // If scale is less than 1 km, convert to meters
+                scaleKm *= 1000; // Convert to meters
+                scaleLabel = 'm';
+            }
+
+            document.getElementById('coordinates').innerHTML = 'Lat: ' + lat + ', Lng: ' + lng + '<br>Zoom: ' + zoom + '<br>Scale: 1:' + Math.round(scaleKm) + ' ' + scaleLabel;
+        });
+
+        let currentIndex = 0;
+    
+    function showTable(index) {
+        const tableCarousel = document.getElementById('table-carousel');
+        const totalTables = document.querySelectorAll('.table-item').length;
+
+        if (index >= totalTables) {
+            currentIndex = 0;
+        } else if (index < 0) {
+            currentIndex = totalTables - 1;
+        } else {
+            currentIndex = index;
+        }
+
+        tableCarousel.style.transform = `translateX(-${currentIndex * 100}%)`;
+    }
+
+    document.getElementById('prev-button').addEventListener('click', () => {
+        showTable(currentIndex - 1);
+    });
+
+    document.getElementById('next-button').addEventListener('click', () => {
+        showTable(currentIndex + 1);
+    });
+
+    // Initial display
+    showTable(currentIndex);
+    </script>
+</body>
+</html>
